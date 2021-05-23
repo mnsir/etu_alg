@@ -10,4 +10,6 @@
 // Добавьте сюда заголовочные файлы для предварительной компиляции
 #include "framework.h"
 
+#include "pugixml.hpp"
+
 #endif //PCH_H
