@@ -10,6 +10,7 @@
 
 #include "resource.h"		// основные символы
 
+#include "database.h"
 
 // CApplicationApp:
 // Сведения о реализации этого класса: Application.cpp

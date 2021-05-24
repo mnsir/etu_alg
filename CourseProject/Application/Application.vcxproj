@@ -194,6 +194,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="ApplicationDlg.h" />
     <ClInclude Include="CEditor.h" />
+    <ClInclude Include="database.h" />
     <ClInclude Include="driver.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="ApplicationDlg.cpp" />
     <ClCompile Include="CEditor.cpp" />
+    <ClCompile Include="database.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -12,4 +12,9 @@
 
 #include "pugixml.hpp"
 
+#include <sstream>
+#include <iomanip>
+#include <array>
+#include <functional>
+
 #endif //PCH_H

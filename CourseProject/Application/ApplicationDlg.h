@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "database.h"
+
+extern UINT DO_UPDATE_LIST;
 
 // Диалоговое окно CApplicationDlg
 class CApplicationDlg : public CDialogEx
@@ -12,6 +15,9 @@ class CApplicationDlg : public CDialogEx
 public:
 	CApplicationDlg(CWnd* pParent = nullptr);	// стандартный конструктор
 
+	DataBase db_;
+	BOOL m_bNeedUpdate = FALSE;
+
 // Данные диалогового окна
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_APPLICATION_DIALOG };
@@ -19,19 +25,30 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// поддержка DDX/DDV
+	virtual BOOL OnInitDialog();
 
 
 // Реализация
 protected:
-	HICON m_hIcon;
-
 	// Созданные функции схемы сообщений
-	virtual BOOL OnInitDialog();
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedAdd();
-	afx_msg void OnBnClickedLoad();
-	afx_msg void OnBnClickedButton3();
+
+	CListCtrl m_cList;
+
+	afx_msg void OnHdnItemclickList(NMHDR* pNMHDR, LRESULT* pResult);
+
+	afx_msg LRESULT DoUpdateList(WPARAM, LPARAM);
+
+	afx_msg void OnLoadUnload();
+	afx_msg void OnUpdateLoadUnload(CCmdUI* pCmdUI);
+
+	afx_msg void OnAdd();
+	afx_msg void OnUpdateAdd(CCmdUI* pCmdUI);
+	afx_msg void OnEdit();
+	afx_msg void OnUpdateEdit(CCmdUI* pCmdUI);
+	afx_msg void OnRemove();
+	afx_msg void OnUpdateRemove(CCmdUI* pCmdUI);
+
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };
