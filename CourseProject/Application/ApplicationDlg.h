@@ -15,8 +15,10 @@ class CApplicationDlg : public CDialogEx
 public:
 	CApplicationDlg(CWnd* pParent = nullptr);	// стандартный конструктор
 
-	DataBase db_;
+	DataBase<Driver> db_ = DataBase<Driver>();
 	BOOL m_bNeedUpdate = FALSE;
+	BOOL m_bLoaded = FALSE;
+	CString m_sBaseFileName;
 
 // Данные диалогового окна
 #ifdef AFX_DESIGN_TIME
@@ -49,6 +51,8 @@ public:
 	afx_msg void OnUpdateEdit(CCmdUI* pCmdUI);
 	afx_msg void OnRemove();
 	afx_msg void OnUpdateRemove(CCmdUI* pCmdUI);
+	afx_msg void OnSearch();
+	afx_msg void OnUpdateSearch(CCmdUI* pCmdUI);
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

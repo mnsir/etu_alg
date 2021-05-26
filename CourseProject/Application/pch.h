@@ -16,5 +16,10 @@
 #include <iomanip>
 #include <array>
 #include <functional>
+#include <tuple>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <list>
 
 #endif //PCH_H

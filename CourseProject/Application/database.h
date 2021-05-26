@@ -6,121 +6,143 @@
 
 #include "driver.h"
 
-class DataBase
+
+// Элемент по DDD по логике не может иметь свойство типа Идентификатора, это
+// понятие существует относительно контейнера, в котором хранится этот Элемент.
+// Тогда Item - это Обертка Элемента, которая имеет Идентификатор и
+// наследует от Типа Элемента все его геттеры
+template <typename T>
+class Item : public T
 {
 public:
+	Item()
+		: T{}
+		, id { next_id_++ }
+	{
+	}
+
+	Item(const Item<T>&) = delete;
+	Item& operator=(const Item<T>&) = delete;
+	Item(Item<T>&&) = default;
+	Item& operator=(Item<T>&&) = default;
+	// Получить Идендификатор
+	size_t GetId() const { return id; }
+	// Сбросить счетчика
+	static void ResetIdCounter() { next_id_ = 0; }
+
+private:
+	inline static size_t next_id_ = 0; // Значение следующего Идендификатора
+	size_t id; // Идендификатор
+};
+
+// База
+template <typename T>
+class DataBase// : public IDataBase
+{
+public:
+	using Item = Item<T>;
+
 	DataBase() = default;
-
-	bool Empty() const { return list_.empty(); }
-	size_t Size() const { return list_.size(); }
-
-	size_t Push(Driver&& driver) {
-		auto it = list_.emplace(list_.cend(), std::move(driver));
-		size_t pos = vector_.size();
-		vector_.emplace_back(it);
-
-		if (Update) Update();
-
-		return pos;
-	}
-
-	Driver Pop(size_t pos) {
-		auto it = vector_.begin();
-		std::advance(it, pos);
-		auto it_ = *it;
-		vector_.erase(it);
-		auto driver = std::move(*it_);
-		list_.erase(it_);
-
-		if (Update) Update();
-
-		return driver;
-	}
-
-	const Driver& Get(size_t pos) const
+	// Создает новый пустой Элемент в Базе и возвращает ссылку на него
+	Item& CreateItem() { return items.emplace_back(Item()); }
+	// Удаляет Элемент из Базы по Идентификатору
+	void RemoveItem(size_t id)
 	{
-		return *vector_[pos];
+		auto it = std::remove_if(items.begin(), items.end(),
+			[&id](const Item& item) { return item.GetId() == id; });
+		items.erase(it);
 	}
-
-	std::function<void(void)> Update = nullptr;
-	std::function<bool(const Driver&, const Driver&)> Predicate = nullptr;
-
-	void Load()
+	// Удалить все Элементы из Базы
+	void Clear() { items.clear(); }
+	// Сортировка вставками
+	// Вызов -> db.Sort(&decltype(db)::Item:: *** Member Function *** );
+	// for - O(n)
+	// rotate - O(n) upper_bound - O(log(n))
+	// вместе O(n^2)
+	template<typename RetTy>
+	void Sort(RetTy(Item::* qwe)() const)
 	{
-		using namespace std::literals::string_view_literals;
-		pugi::xml_document xml;
-		if (xml.load_file(file_))
-		{
-			auto doc = xml.document_element();
-			for (auto node : doc.children())
-			{
-				auto it = list_.emplace(list_.cend());
-				for (auto attribute : node.attributes())
-				{
-					if (attribute.name() == L"last_name"sv)
-						it->SetLastName(attribute.value());
-					else if (attribute.name() == L"first_name"sv)
-						it->SetFirstName(attribute.value());
-					else if (attribute.name() == L"second_name"sv)
-						it->SetSecondName(attribute.value());
-					else if (attribute.name() == L"driver_class"sv)
-						it->SetDriverClass(DriverClass(attribute.value()));
-					else if (attribute.name() == L"employment_date"sv)
-					{
-						it->SetEmploymentDate(attribute.as_llong(std::time(nullptr)));
-					}
-					else if (attribute.name() == L"salary"sv)
-					{
-						it->SetSalary(attribute.as_uint());
-					}
-				}
-				vector_.emplace_back(std::move(it));
-			}
-			if (Update) Update();
-		}
+		auto mf = std::mem_fn(qwe);
+		auto pred = [&](const Item& lhs, const Item& rhs) { return mf(lhs) < mf(rhs); };
+		for (auto it = items.begin(); it != items.end(); it++)
+			std::rotate(std::upper_bound(items.begin(), it, *it, pred), it, it + 1);
 	}
-	void Unload(bool save)
+	// Получить список входящих Элементов в порядке последней примененной сортировки
+	const std::vector<Item>& GetItems() const { return items; }
+	// Бинарный поиск
+	// Sort - O(n^2)
+	// lower_bound - O(log(n))
+	Item* Search(size_t id)
 	{
-		if (save)
-		{
-			pugi::xml_document xml;
-			xml.append_child(L"document");
-
-			auto doc = xml.document_element();
-			for (const auto& driver : list_)
-			{
-				auto node = doc.append_child(L"driver");
-				node.append_attribute(L"last_name").set_value(driver.GetLastName().c_str());
-				node.append_attribute(L"first_name").set_value(driver.GetFirstName().c_str());
-				node.append_attribute(L"second_name").set_value(driver.GetSecondName().c_str());
-				node.append_attribute(L"driver_class").set_value(
-					static_cast<const wchar_t*>(driver.GetDriverClass())
-				);
-				node.append_attribute(L"employment_date").set_value(driver.GetEmploymentDate());
-				node.append_attribute(L"salary").set_value(driver.GetSalary());
-			}
-			xml.save_file(file_);
-		}
-		list_.clear();
-		vector_.clear();
-		if (Update) Update();
-	}
-
-	void Sort() {
-		for (auto it = vector_.begin(); it != vector_.end(); it++)
-		{
-			auto const insertion_point = std::upper_bound(vector_.begin(), it, *it, 
-				[this](decltype(vector_)::const_reference lhs, decltype(vector_)::const_reference rhs) {
-					return Predicate(*lhs, *rhs);
-				});
-			std::rotate(insertion_point, it, it + 1);
-		}
-		Update();
+		Sort(&Item::GetId);
+		auto it = std::lower_bound(items.begin(), items.end(), id,
+			[](const Item& lhs, size_t rhs) { return lhs.GetId() < rhs; });
+		return (it != items.end()) ? &(*it) : nullptr;
 	}
 
 private:
-	constexpr static const wchar_t* file_ = L"base.xml";
-	std::list<Driver> list_;
-	std::vector<decltype(list_)::iterator> vector_;
+	std::vector<Item> items; // Контейнер Элементов
 };
 
+
+template <typename T>
+void Load(DataBase<T>& db, const wchar_t* fileName)
+{
+	using namespace std::literals::string_view_literals;
+
+	pugi::xml_document xml;
+	if (xml.load_file(fileName))
+	{
+		auto doc = xml.document_element();
+		for (auto node : doc.children())
+		{
+			auto& driver = db.CreateItem();
+			for (auto attribute : node.attributes())
+			{
+				if (attribute.name() == L"last_name"sv)
+					driver.SetLastName(attribute.value());
+				else if (attribute.name() == L"first_name"sv)
+					driver.SetFirstName(attribute.value());
+				else if (attribute.name() == L"second_name"sv)
+					driver.SetSecondName(attribute.value());
+				else if (attribute.name() == L"driver_class"sv)
+					driver.SetDriverClass(DriverClass(attribute.value()));
+				else if (attribute.name() == L"employment_date"sv)
+				{
+					driver.SetEmploymentDate(attribute.as_llong(std::time(nullptr)));
+				}
+				else if (attribute.name() == L"salary"sv)
+				{
+					driver.SetSalary(attribute.as_uint());
+				}
+			}
+		}
+	}
+}
+
+template <typename T>
+void Unload(DataBase<T>& db, std::wstring fileName = L"")
+{
+	if (!fileName.empty())
+	{
+		pugi::xml_document xml;
+		xml.append_child(L"document");
+
+		auto doc = xml.document_element();
+		db.Sort(&DataBase<T>::Item::GetId);
+		for (const auto& driver : db.GetItems())
+		{
+			auto node = doc.append_child(L"driver");
+			node.append_attribute(L"last_name").set_value(driver.GetLastName().c_str());
+			node.append_attribute(L"first_name").set_value(driver.GetFirstName().c_str());
+			node.append_attribute(L"second_name").set_value(driver.GetSecondName().c_str());
+			node.append_attribute(L"driver_class").set_value(
+				static_cast<const wchar_t*>(driver.GetDriverClass())
+			);
+			node.append_attribute(L"employment_date").set_value(driver.GetEmploymentDate());
+			node.append_attribute(L"salary").set_value(driver.GetSalary());
+		}
+		xml.save_file(fileName.c_str());
+	}
+	db.Clear();
+}

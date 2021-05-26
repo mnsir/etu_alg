@@ -27,4 +27,6 @@ public:
 	CString m_sDriverClass;
 	COleDateTime m_dtEmploymentDate;
 	CString m_sSalary;
+	virtual BOOL OnInitDialog();
+	CComboBox m_cCombo;
 };
