@@ -29,24 +29,24 @@ struct Driver
 public:
 	Driver() = default;
 
-	std::wstring GetLastName() const { return LastName; }
-	std::wstring GetFirstName() const { return FirstName; }
-	std::wstring GetSecondName() const { return SecondName; }
-	DriverClass GetDriverClass() const { return Class; }
-	std::time_t GetEmploymentDate() const { return EmploymentDate; }
-	std::size_t GetSalary() const { return Salary; }
+	std::wstring GetLastName() const { return lastName_; }
+	std::wstring GetFirstName() const { return firstName_; }
+	std::wstring GetSecondName() const { return secondName_; }
+	DriverClass GetDriverClass() const { return class_; }
+	std::time_t GetEmploymentDate() const { return employmentDate_; }
+	std::size_t GetSalary() const { return salary_; }
 
-	void SetLastName(const std::wstring& val) { LastName = val; }
-	void SetFirstName(const std::wstring& val) { FirstName = val; }
-	void SetSecondName(const std::wstring& val) { SecondName = val; }
-	void SetDriverClass(DriverClass val) { Class = val; }
-	void SetEmploymentDate(std::time_t val) { EmploymentDate = val; }
-	void SetSalary(std::size_t val) { Salary = val; }
+	void SetLastName(const std::wstring& val) { lastName_ = val; }
+	void SetFirstName(const std::wstring& val) { firstName_ = val; }
+	void SetSecondName(const std::wstring& val) { secondName_ = val; }
+	void SetDriverClass(DriverClass val) { class_ = val; }
+	void SetEmploymentDate(std::time_t val) { employmentDate_ = val; }
+	void SetSalary(std::size_t val) { salary_ = val; }
 
-	std::wstring GetFullName() const { return LastName + L' ' + FirstName.front() + L'.' + SecondName.front() + L'.'; }
+	std::wstring GetFullName() const { return lastName_ + L' ' + firstName_.front() + L'.' + secondName_.front() + L'.'; }
 	std::wstring GetExperience() const {
 		const std::time_t now = std::time(nullptr);
-		auto diff = std::difftime(now, EmploymentDate) / 31'536'000;
+		auto diff = std::difftime(now, employmentDate_) / 31'536'000;
 		std::wostringstream ss;
 		ss.imbue(std::locale(""));
 		ss << std::setprecision(2) << diff;
@@ -54,11 +54,11 @@ public:
 	}
 
 private:
-	std::wstring LastName;       // Фамилия
-	std::wstring FirstName;      // Имя
-	std::wstring SecondName;     // Отчество
-	DriverClass  Class;          // Класс водителя
-	std::time_t  EmploymentDate; // Дата устройства
-	std::size_t  Salary;         // оклад
+	std::wstring lastName_;       // Фамилия
+	std::wstring firstName_;      // Имя
+	std::wstring secondName_;     // Отчество
+	DriverClass  class_;          // Класс водителя
+	std::time_t  employmentDate_; // Дата устройства
+	std::size_t  salary_;         // оклад
 };
 
