@@ -63,9 +63,14 @@ public:
 	void Sort(RetTy(Item::* qwe)() const)
 	{
 		auto mf = std::mem_fn(qwe);
-		auto pred = [&](const Item& lhs, const Item& rhs) { return mf(lhs) < mf(rhs); };
+		auto pred = [&](const Item& lhs, const Item& rhs) {
+			return mf(lhs) < mf(rhs);
+		};
 		for (auto it = items.begin(); it != items.end(); it++)
-			std::rotate(std::upper_bound(items.begin(), it, *it, pred), it, it + 1);
+			std::rotate(
+				std::upper_bound(items.begin(), it, *it, pred), 
+				it, 
+				it + 1);
 	}
 	// Получить список входящих Элементов в порядке последней примененной сортировки
 	const std::vector<Item>& GetItems() const { return items; }
